@@ -8,7 +8,7 @@ from transformers import AutoTokenizer, AutoModel, AutoModelForCausalLM, BitsAnd
 from peft import PeftModel
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
@@ -468,6 +468,30 @@ def health():
         if torch.cuda.is_available():
             info["gpu_memory_gb"] = round(torch.cuda.memory_allocated() / 1024**3, 2)
     return info
+
+# ---- 데모 페이지(single HTML) same-origin 서빙 ----
+# 공개URL/ 로 접속하면 데모와 API가 동일 출처(same-origin)라 CORS 문제 없음.
+# server.py 위치를 기준으로 demo/index.html을 여러 후보 경로에서 탐색(레포/플랫 배포 모두 호환).
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_DEMO_CANDIDATES = [
+    os.path.join(_HERE, "demo", "index.html"),         # server.py 와 같은 폴더의 demo/
+    os.path.join(_HERE, "..", "demo", "index.html"),   # 레포 루트의 demo/ (server/ 의 상위)
+    os.path.join(_HERE, "index.html"),                 # server.py 옆에 평탄화된 경우
+]
+
+def _demo_path():
+    for p in _DEMO_CANDIDATES:
+        if os.path.isfile(p):
+            return p
+    return None
+
+@app.get("/")
+def demo_index():
+    p = _demo_path()
+    if p:
+        return FileResponse(p, media_type="text/html; charset=utf-8")
+    return JSONResponse(status_code=404, content={"ok": False,
+        "error": "demo/index.html을 찾을 수 없습니다. server.py 와 같은 위치(또는 상위)에 demo/index.html을 두세요."})
 
 @app.get("/interview/personas")
 def list_personas(lang: str = "ko"):

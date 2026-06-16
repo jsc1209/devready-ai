@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DevReady AI 데모 · 이력서 / 교육</title>
+<style>
+  /* ===== DevReady 색상 토큰 ===== */
+  :root{
+    --navy:#28323D;        /* 네이비 */
+    --blue:#1F497D;        /* 블루 */
+    --lightblue:#E2E9F2;   /* 라이트블루 */
+    --gray:#5A6472;        /* 회색 텍스트 */
+    --border:#D5DBE4;      /* 보더 */
+    --bg:#F5F7FA;
+    --white:#FFFFFF;
+    --good:#1F8A4C;
+    --warn:#C0392B;
+    --radius:12px;
+    --shadow:0 1px 3px rgba(40,50,61,.08), 0 1px 2px rgba(40,50,61,.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;
+    background:var(--bg); color:var(--navy); line-height:1.55; font-size:15px;
+  }
+  h1,h2,h3,h4{margin:0; color:var(--navy); font-weight:700;}
+  button{font-family:inherit; cursor:pointer;}
+  input,textarea,select{font-family:inherit; font-size:14px; color:var(--navy);}
+  a{color:var(--blue);}
+
+  /* ===== 상단 바 ===== */
+  header{
+    position:sticky; top:0; z-index:30; background:var(--navy); color:#fff;
+    box-shadow:var(--shadow);
+  }
+  .topbar{
+    max-width:1180px; margin:0 auto; padding:10px 18px;
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:9px; font-weight:800; font-size:18px; white-space:nowrap;}
+  .brand .dot{width:11px; height:11px; border-radius:3px; background:#fff; display:inline-block;}
+  .brand small{font-weight:500; opacity:.7; font-size:12px;}
+  .conn{display:flex; align-items:center; gap:7px; flex:1; flex-wrap:wrap; min-width:280px;}
+  .conn input{
+    padding:7px 10px; border:1px solid #46525f; border-radius:8px;
+    background:#222b34; color:#fff; min-width:150px;
+  }
+  .conn input#baseUrl{flex:1; min-width:200px;}
+  .conn input#apiKey{width:140px;}
+  .conn button{
+    padding:7px 14px; border:none; border-radius:8px; background:var(--blue);
+    color:#fff; font-weight:600; white-space:nowrap;
+  }
+  .conn button:hover{filter:brightness(1.1);}
+  .chips{display:flex; gap:6px; flex-wrap:wrap; width:100%; }
+  .chip{
+    font-size:12px; padding:3px 9px; border-radius:20px; background:#222b34;
+    border:1px solid #46525f; color:#cfd6de; white-space:nowrap;
+  }
+  .chip b{color:#fff;}
+  .chip.ok{border-color:var(--good); color:#bff5d2;}
+  .chip.bad{border-color:var(--warn); color:#ffd0c9;}
+
+  /* ===== 탭 ===== */
+  .maintabs{
+    max-width:1180px; margin:0 auto; padding:0 18px; display:flex; gap:4px;
+  }
+  .maintabs button{
+    padding:12px 22px; border:none; background:transparent; color:#9aa6b4;
+    font-weight:700; font-size:15px; border-bottom:3px solid transparent;
+  }
+  .maintabs{background:var(--navy);}
+  .maintabs button.active{color:#fff; border-bottom-color:#fff;}
+
+  main{max-width:1180px; margin:0 auto; padding:22px 18px 60px;}
+  .page{display:none;} .page.active{display:block;}
+
+  /* ===== 공통 카드/요소 ===== */
+  .card{background:var(--white); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);}
+  .pad{padding:18px;}
+  .muted{color:var(--gray);}
+  .pagehead{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
+  .pagehead h1{font-size:26px;}
+  .pagehead p{margin:4px 0 0; color:var(--gray); font-size:14px;}
+  .dummybtns{display:flex; gap:8px; flex-wrap:wrap;}
+  .dummybtns button{
+    padding:8px 13px; border:1px solid var(--border); border-radius:8px;
+    background:#fff; color:var(--gray); font-weight:600; font-size:13px;
+  }
+  .dummybtns button:hover{background:var(--lightblue);}
+  .tag{display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; background:var(--lightblue); color:var(--blue);}
+  label.fld{display:block; margin-bottom:14px;}
+  label.fld span{display:block; font-size:13px; font-weight:600; margin-bottom:5px; color:var(--navy);}
+  input.t, textarea.t, select.t{
+    width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:#fff;
+  }
+  input.t:focus, textarea.t:focus, select.t:focus{outline:2px solid var(--lightblue); border-color:var(--blue);}
+  textarea.t{resize:vertical; min-height:90px;}
+  .primary{
+    padding:11px 20px; border:none; border-radius:9px; background:var(--blue); color:#fff;
+    font-weight:700; font-size:15px;
+  }
+  .primary:hover{filter:brightness(1.08);}
+  .primary:disabled{opacity:.55; cursor:not-allowed;}
+  .ghost{
+    padding:11px 16px; border:1px solid var(--blue); border-radius:9px; background:#fff; color:var(--blue);
+    font-weight:700; font-size:14px;
+  }
+  .ghost:hover{background:var(--lightblue);}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+
+  /* ===== 이력서 레이아웃 ===== */
+  .resume-grid{display:grid; grid-template-columns:210px 1fr; gap:16px;}
+  .vtabs{display:flex; flex-direction:column; gap:4px;}
+  .vtabs button{
+    text-align:left; padding:11px 14px; border:1px solid transparent; border-radius:9px;
+    background:transparent; color:var(--gray); font-weight:600; font-size:14px;
+  }
+  .vtabs button.active{background:var(--lightblue); color:var(--blue); border-color:#cdd9ea;}
+  .vtabs .spacer{flex:1; min-height:8px;}
+  .vtabs .auto{background:var(--navy); color:#fff; text-align:center; border-radius:9px;}
+  .subpage{display:none;} .subpage.active{display:block;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:0 14px;}
+
+  /* ===== 점수 막대 ===== */
+  .scores{display:flex; flex-direction:column; gap:12px;}
+  .score b{font-size:13px;}
+  .score .meta{display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;}
+  .score .meta .val{font-weight:700; color:var(--blue);}
+  .bar{height:11px; background:var(--lightblue); border-radius:20px; overflow:hidden;}
+  .bar > i{display:block; height:100%; background:linear-gradient(90deg,var(--blue),#3f6ba8); border-radius:20px; width:0; transition:width .5s;}
+  .bar.muted > i{background:#9aa6b4;}
+
+  /* 결과 카드(강점/약점/제안/총평) */
+  .reslist{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px;}
+  .reslist .box{border:1px solid var(--border); border-radius:10px; padding:13px 14px; background:#fbfcfe;}
+  .reslist .box h4{font-size:13px; margin-bottom:7px; display:flex; align-items:center; gap:6px;}
+  .reslist .box.full{grid-column:1 / -1;}
+  .reslist ul{margin:0; padding-left:18px;} .reslist li{margin-bottom:4px; font-size:14px;}
+  .badge{width:8px; height:8px; border-radius:50%; display:inline-block;}
+  .badge.s{background:var(--good);} .badge.w{background:var(--warn);} .badge.t{background:var(--blue);}
+
+  /* ===== 교육 페이지 ===== */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px;}
+  .stat{padding:16px; text-align:left;}
+  .stat .big{font-size:24px; font-weight:800; color:var(--blue);}
+  .stat .lbl{font-size:13px; color:var(--gray); margin-top:2px;}
+  .sectiontitle{font-size:16px; margin:22px 0 12px;}
+  .weak{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+  .weakcard{padding:15px; border-left:4px solid var(--blue);}
+  .weakcard h4{font-size:14px;}
+  .weakcard .rate{font-size:12px; font-weight:700; color:var(--warn); margin:6px 0 10px;}
+  .weakcard button{font-size:12px; padding:6px 12px; border:1px solid var(--blue); background:#fff; color:var(--blue); border-radius:7px; font-weight:700;}
+  .weakcard button:hover{background:var(--lightblue);}
+  .cattabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;}
+  .cattabs button{padding:7px 15px; border:1px solid var(--border); border-radius:20px; background:#fff; color:var(--gray); font-weight:600; font-size:13px;}
+  .cattabs button.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+  .courses{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px;}
+  .course{padding:15px;} .course .ct{font-size:11px;} .course h4{font-size:15px; margin:8px 0 4px;} .course p{margin:0; font-size:13px; color:var(--gray);}
+  .course .meterwrap{margin-top:10px;}
+
+  /* 진단/채점 */
+  .quizbox{margin-top:18px;}
+  .qcard{padding:18px; background:var(--lightblue); border:none;}
+  .qcard .qno{font-size:12px; font-weight:700; color:var(--blue);}
+  .qcard .qtext{font-size:17px; font-weight:700; margin:6px 0 0;}
+  .endpoint-note{font-size:12px; color:var(--gray); background:#fff; border:1px dashed var(--border); border-radius:8px; padding:8px 11px; margin:12px 0;}
+  .endpoint-note code{background:var(--lightblue); color:var(--blue); padding:1px 6px; border-radius:5px; font-weight:700;}
+
+  /* 스트리밍 추론 출력 */
+  .stream{
+    white-space:pre-wrap; word-break:break-word; font-size:13px; line-height:1.6;
+    background:var(--navy); color:#d7e0ea; border-radius:10px; padding:14px;
+    max-height:320px; overflow:auto; font-family:'Consolas','D2Coding',monospace;
+  }
+  .stream .cursor{display:inline-block; width:8px; height:15px; background:#7fd6ff; vertical-align:middle; animation:blink 1s steps(2) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  /* 로딩/에러/토스트 */
+  .loading{display:inline-flex; align-items:center; gap:8px; color:var(--blue); font-weight:600; font-size:14px;}
+  .spinner{width:16px; height:16px; border:2px solid var(--lightblue); border-top-color:var(--blue); border-radius:50%; animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .errbox{border:1px solid #f0b8b0; background:#fdf3f2; color:#8a2b20; border-radius:10px; padding:12px 14px; font-size:14px;}
+  .errbox pre{white-space:pre-wrap; word-break:break-word; background:#fff; border:1px solid #f0b8b0; border-radius:8px; padding:8px; margin:8px 0 0; font-size:12px; max-height:220px; overflow:auto;}
+  .hide{display:none !important;}
+  .toast{
+    position:fixed; left:50%; bottom:26px; transform:translateX(-50%); z-index:60;
+    background:var(--navy); color:#fff; padding:11px 18px; border-radius:10px; box-shadow:var(--shadow);
+    font-size:14px; opacity:0; transition:opacity .25s, bottom .25s; pointer-events:none;
+  }
+  .toast.show{opacity:1; bottom:34px;}
+  .grade-pill{display:inline-block; font-weight:800; font-size:22px; color:var(--blue); background:var(--lightblue); border-radius:10px; padding:4px 14px;}
+
+  /* 반응형 */
+  @media (max-width:820px){
+    .resume-grid{grid-template-columns:1fr;}
+    .vtabs{flex-direction:row; flex-wrap:wrap;}
+    .vtabs .spacer{display:none;}
+    .vtabs .auto{flex:1;}
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .weak{grid-template-columns:1fr;}
+    .grid2{grid-template-columns:1fr;}
+    .reslist{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= 상단 바 ================= -->
+<header>
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>DevReady <small>AI 데모</small></div>
+    <div class="conn">
+      <input id="baseUrl" type="text" placeholder="API Base URL (예: https://xxxx.trycloudflare.com)" />
+      <input id="apiKey" type="text" placeholder="API Key (선택)" title="서버에 API_KEY가 설정된 경우에만 입력" />
+      <button id="btnHealth" type="button">연결 확인</button>
+    </div>
+    <div class="chips" id="healthChips">
+      <span class="chip">서버 상태: <b>미확인</b></span>
+    </div>
+  </div>
+  <div class="maintabs">
+    <button data-page="resume" class="active" type="button">이력서</button>
+    <button data-page="edu" type="button">교육</button>
+  </div>
+</header>
+
+<main>
+  <!-- ============================================================
+       페이지 A · 이력서
+  ============================================================ -->
+  <section class="page active" id="page-resume">
+    <div class="pagehead">
+      <div>
+        <h1>이력서</h1>
+        <p>AI가 자동 완성을 도와드립니다</p>
+      </div>
+      <div class="dummybtns">
+        <button type="button" onclick="dummy('히스토리')">히스토리</button>
+        <button type="button" onclick="dummy('공개 설정')">공개 설정</button>
+        <button type="button" onclick="dummy('PDF 저장')">PDF 저장</button>
+        <button type="button" onclick="dummy('저장')">저장</button>
+      </div>
+    </div>
+
+    <div class="resume-grid">
+      <!-- 좌측 세로 탭(대부분 더미, 실제 동작은 자기소개서 탭) -->
+      <nav class="vtabs card pad">
+        <button class="rtab active" data-sub="basic" type="button">기본 정보</button>
+        <button class="rtab" data-sub="dummy-edu" type="button">학력</button>
+        <button class="rtab" data-sub="dummy-career" type="button">경력</button>
+        <button class="rtab" data-sub="dummy-skill" type="button">스킬</button>
+        <button class="rtab" data-sub="intro" type="button">자기소개서</button>
+        <div class="spacer"></div>
+        <button class="auto" type="button" onclick="dummy('AI 자동 완성(데모 미연동)')">AI 자동 완성</button>
+      </nav>
+
+      <!-- 우측 콘텐츠 -->
+      <div>
+        <!-- 기본 정보 (더미 입력) -->
+        <div class="subpage active card pad" id="sub-basic">
+          <h3 style="margin-bottom:14px;">기본 정보 <span class="tag">데모 · 미전송</span></h3>
+          <div class="grid2">
+            <label class="fld"><span>이름</span><input class="t" placeholder="홍길동" /></label>
+            <label class="fld"><span>이메일</span><input class="t" placeholder="hong@example.com" /></label>
+            <label class="fld"><span>연락처</span><input class="t" placeholder="010-0000-0000" /></label>
+            <label class="fld"><span>거주지</span><input class="t" placeholder="서울특별시" /></label>
+            <label class="fld"><span>GitHub</span><input class="t" placeholder="github.com/username" /></label>
+            <label class="fld"><span>포트폴리오</span><input class="t" placeholder="https://..." /></label>
+          </div>
+          <p class="muted" style="font-size:13px;margin:4px 0 0;">※ 이 탭은 화면 재현용입니다. AI 분석은 <b>자기소개서</b> 탭에서 실행됩니다.</p>
+        </div>
+
+        <!-- 더미 탭들 -->
+        <div class="subpage card pad" id="sub-dummy-edu"><h3>학력</h3><p class="muted">데모에서는 생략된 화면입니다.</p></div>
+        <div class="subpage card pad" id="sub-dummy-career"><h3>경력</h3><p class="muted">데모에서는 생략된 화면입니다.</p></div>
+        <div class="subpage card pad" id="sub-dummy-skill"><h3>스킬</h3><p class="muted">데모에서는 생략된 화면입니다.</p></div>
+
+        <!-- 자기소개서 (실제 /resume/analyze 호출) -->
+        <div class="subpage card pad" id="sub-intro">
+          <h3 style="margin-bottom:4px;">자기소개서 분석 <span class="tag">AI 연동</span></h3>
+          <p class="muted" style="font-size:13px;margin:0 0 14px;">자소서 본문을 입력하고 <b>AI 분석</b>을 누르면 <code>POST /resume/analyze</code>를 호출합니다.</p>
+          <label class="fld">
+            <span>자기소개서 / 이력서 본문 <b style="color:var(--warn)">*</b></span>
+            <textarea class="t" id="ra-doc" style="min-height:170px" placeholder="자기소개서 또는 이력서 내용을 붙여넣으세요."></textarea>
+          </label>
+          <label class="fld">
+            <span>지원 채용공고 (선택) — 입력 시 공고 적합도 점수가 계산됩니다</span>
+            <textarea class="t" id="ra-job" style="min-height:90px" placeholder="지원하려는 채용공고 본문(선택)"></textarea>
+          </label>
+          <div class="row">
+            <button class="primary" id="ra-run" type="button">AI 분석</button>
+            <button class="ghost" type="button" onclick="fillResumeSample()">예시 채우기</button>
+          </div>
+
+          <!-- 결과 영역 -->
+          <div id="ra-status" class="hide" style="margin-top:16px;"></div>
+          <div id="ra-result" class="hide" style="margin-top:18px;">
+            <h4 style="margin-bottom:12px;">분석 점수 <span class="muted" style="font-weight:500;font-size:12px;">(각 10점 만점)</span></h4>
+            <div class="scores" id="ra-scores"></div>
+            <h4 style="margin:20px 0 8px;">상세 피드백</h4>
+            <div class="reslist" id="ra-cards"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       페이지 B · 교육
+  ============================================================ -->
+  <section class="page" id="page-edu">
+    <div class="pagehead">
+      <div>
+        <h1>교육 센터</h1>
+        <p>취약 개념부터, AI가 맞춤 학습 경로를 추천합니다</p>
+      </div>
+    </div>
+
+    <!-- 통계 카드(더미) -->
+    <div class="stats">
+      <div class="stat card"><div class="big">79문항</div><div class="lbl">학습 문항</div></div>
+      <div class="stat card"><div class="big">3개</div><div class="lbl">진행 중 강의</div></div>
+      <div class="stat card"><div class="big">12.4h</div><div class="lbl">총 학습 시간</div></div>
+      <div class="stat card"><div class="big">76%</div><div class="lbl">최근 정답률</div></div>
+    </div>
+
+    <!-- 취약 개념 추천(더미) — 클릭 시 아래 진단 문제로 이동 -->
+    <h3 class="sectiontitle">취약 개념 추천</h3>
+    <div class="weak">
+      <div class="weakcard card"><h4>Virtual DOM &amp; Reconciliation</h4><div class="rate">오답률 17%</div><button type="button" onclick="jumpToQuiz('vdom')">학습하기</button></div>
+      <div class="weakcard card"><h4>TCP 3-way Handshake</h4><div class="rate">오답률 49%</div><button type="button" onclick="jumpToQuiz('handshake')">학습하기</button></div>
+      <div class="weakcard card"><h4>DB 트랜잭션 격리수준</h4><div class="rate">오답률 99%</div><button type="button" onclick="jumpToQuiz('isolation')">학습하기</button></div>
+    </div>
+
+    <!-- 강의 카드(더미) -->
+    <h3 class="sectiontitle">강의</h3>
+    <div class="cattabs" id="courseCats">
+      <button class="active" data-cat="전체" type="button">전체</button>
+      <button data-cat="알고리즘" type="button">알고리즘</button>
+      <button data-cat="CS기초" type="button">CS 기초</button>
+      <button data-cat="프론트엔드" type="button">프론트엔드</button>
+      <button data-cat="백엔드" type="button">백엔드</button>
+    </div>
+    <div class="courses" id="courseGrid"></div>
+
+    <!-- ===== AI 퀴즈 기초진단 (실제 채점) ===== -->
+    <h3 class="sectiontitle">AI 기초진단 · CS 단답 퀴즈</h3>
+    <div class="quizbox card pad">
+      <div class="row" style="margin-bottom:8px;">
+        <label class="fld" style="margin:0; min-width:180px; flex:1;">
+          <span>카테고리</span>
+          <select class="t" id="quiz-cat">
+            <option value="전체">전체</option>
+            <option value="알고리즘">알고리즘</option>
+            <option value="CS기초">CS 기초</option>
+            <option value="프론트엔드">프론트엔드</option>
+            <option value="백엔드">백엔드</option>
+          </select>
+        </label>
+        <label class="fld" style="margin:0; min-width:140px;">
+          <span>난이도</span>
+          <select class="t" id="quiz-diff">
+            <option value="하">하</option>
+            <option value="중" selected>중</option>
+            <option value="상">상</option>
+          </select>
+        </label>
+        <label class="fld" style="margin:0; min-width:140px;">
+          <span>&nbsp;</span>
+          <button class="ghost" type="button" onclick="nextQuestion()" style="width:100%;">문제 바꾸기 ⟳</button>
+        </label>
+      </div>
+
+      <div class="qcard card" style="margin-top:6px;">
+        <div class="qno" id="q-no">문제</div>
+        <div class="qtext" id="q-text">문제를 불러오는 중...</div>
+      </div>
+
+      <div class="endpoint-note">
+        채점 호출 엔드포인트: <code id="q-endpoint">POST /interview/evaluate/stream</code>
+        <span id="q-endpoint-reason">— 교육 전용 단답 채점 엔드포인트가 없어 면접 채점 API(SSE)를 재사용합니다.</span>
+      </div>
+
+      <label class="fld" style="margin-top:4px;">
+        <span>내 답변</span>
+        <textarea class="t" id="q-answer" style="min-height:110px" placeholder="여기에 답을 작성하세요."></textarea>
+      </label>
+      <div class="row">
+        <button class="primary" id="q-grade" type="button">채점</button>
+        <button class="ghost" type="button" onclick="fillQuizSample()">예시 답변</button>
+      </div>
+
+      <!-- 스트리밍 추론 -->
+      <div id="q-streamwrap" class="hide" style="margin-top:16px;">
+        <h4 style="margin-bottom:8px;">EXAONE 추론 (실시간) <span class="muted" style="font-weight:500;font-size:12px;">— 토큰 스트리밍</span></h4>
+        <div class="stream" id="q-stream"><span class="cursor"></span></div>
+      </div>
+      <!-- 최종 결과 -->
+      <div id="q-status" class="hide" style="margin-top:14px;"></div>
+      <div id="q-result" class="hide" style="margin-top:16px;">
+        <h4 style="margin-bottom:12px;">채점 결과 <span class="muted" style="font-weight:500;font-size:12px;">(각 100점 만점)</span></h4>
+        <div class="scores" id="q-scores"></div>
+        <div class="reslist" id="q-cards" style="margin-top:16px;"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIG — 모든 엔드포인트 경로 · 요청/응답 필드명을 한 곳에 모음.
+   (STEP1에서 server.py / mapping.py 로 실측한 실제 값)
+   서버가 바뀌면 여기만 고치면 됩니다.
+============================================================ */
+const CONFIG = {
+  lang: "ko",
+  endpoints: {
+    health:         { method:"GET",  path:"/health" },
+    resumeAnalyze:  { method:"POST", path:"/resume/analyze" },
+    evaluateStream: { method:"POST", path:"/interview/evaluate/stream" }, // SSE
+  },
+  // 요청 JSON 필드명
+  reqFields: {
+    resume:   { document:"document", jobPosting:"job_posting", role:"role", lang:"lang" },
+    evaluate: { question:"question", answer:"answer", lang:"lang" },
+  },
+  // 응답 JSON 필드명
+  resFields: {
+    health:   { ready:"ready", rag:"rag_questions", adapter:"adapter_loaded", gpu:"gpu_memory_gb", status:"status" },
+    resume:   { wrap:"analysis", overall:"overall_score", spec:"specificity_score",
+                star:"star_score", jobfit:"job_fit_score",
+                strengths:"strengths", weaknesses:"weaknesses", suggestions:"suggestions", summary:"summary" },
+    // /interview/evaluate/stream 의 done 이벤트: { type:"done", ok, evaluation:{...} }
+    evalWrap: "evaluation",
+    evalScores: "scores",            // {technical_accuracy, specificity, logic, communication}
+    evalOverall: "overall",
+    evalFeedback: "feedback",
+    evalStrengths: "strengths",
+    evalImprovements: "improvements",
+    scoreKeys: ["technical_accuracy","specificity","logic","communication"],
+    scoreLabels: { technical_accuracy:"기술 정확도", specificity:"구체성", logic:"논리성", communication:"의사소통" },
+  },
+};
+
+/* ============================================================
+   공통 유틸
+============================================================ */
+const $ = (id) => document.getElementById(id);
+
+function baseUrl(){
+  return ($("baseUrl").value || "").trim().replace(/\/+$/,""); // 끝 슬래시 제거
+}
+function apiUrl(path){ return baseUrl() + path; }   // base 가 비면 상대경로(same-origin)
+function authHeaders(extra){
+  const h = Object.assign({}, extra || {});
+  const key = ($("apiKey").value || "").trim();
+  if(key) h["X-API-Key"] = key;
+  return h;
+}
+function toast(msg){
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove("show"), 1900);
+}
+function dummy(name){ toast(name + " — 데모에서는 동작하지 않는 화면 재현 버튼입니다."); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+/* 로딩 표시 */
+function showLoading(el, text){
+  el.classList.remove("hide");
+  el.innerHTML = '<span class="loading"><span class="spinner"></span>'+esc(text||"처리 중...")+'</span>';
+}
+/* 에러 표시 — 원문(raw)을 항상 함께 노출, 절대 멈추지 않음 */
+function showError(el, message, raw){
+  el.classList.remove("hide");
+  let html = '<div class="errbox"><b>오류:</b> '+esc(message);
+  if(raw!=null && raw!==""){
+    const rawStr = (typeof raw==="string") ? raw : JSON.stringify(raw, null, 2);
+    html += '<pre>'+esc(rawStr)+'</pre>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+/* 점수 막대 1개 렌더 */
+function scoreBar(label, value, max, muted, note){
+  const pct = Math.max(0, Math.min(100, (Number(value)||0)/max*100));
+  return '<div class="score">'+
+    '<div class="meta"><b>'+esc(label)+'</b><span class="val">'+(note!=null?esc(note):(value+' / '+max))+'</span></div>'+
+    '<div class="bar'+(muted?' muted':'')+'"><i style="width:'+pct+'%"></i></div>'+
+  '</div>';
+}
+
+/* ============================================================
+   탭 전환
+============================================================ */
+document.querySelectorAll(".maintabs button").forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll(".maintabs button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    $("page-"+b.dataset.page).classList.add("active");
+  };
+});
+/* 이력서 좌측 세로 탭 */
+document.querySelectorAll(".rtab").forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll(".rtab").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    document.querySelectorAll(".subpage").forEach(p=>p.classList.remove("active"));
+    $("sub-"+b.dataset.sub).classList.add("active");
+  };
+});
+
+/* ============================================================
+   연결 확인 — GET /health
+============================================================ */
+async function checkHealth(){
+  const chips = $("healthChips");
+  chips.innerHTML = '<span class="chip"><span class="loading" style="color:#cfd6de"><span class="spinner"></span>확인 중...</span></span>';
+  try{
+    const r = await fetch(apiUrl(CONFIG.endpoints.health.path), { headers: authHeaders() });
+    const text = await r.text();
+    let j; try{ j = JSON.parse(text); }catch(e){ j = null; }
+    if(!j){
+      chips.innerHTML = '<span class="chip bad">응답 파싱 실패 (HTTP '+r.status+')</span>';
+      toast("health 응답을 JSON으로 읽지 못했습니다."); return;
+    }
+    const f = CONFIG.resFields.health;
+    const ready = j[f.ready] === true;
+    let html = '<span class="chip '+(ready?'ok':'bad')+'">상태: <b>'+(ready?'준비됨(ready)':'로딩중/미준비')+'</b></span>';
+    html += '<span class="chip">RAG 질문 수: <b>'+(j[f.rag]!=null?j[f.rag]:'—')+'</b></span>';
+    html += '<span class="chip">어댑터: <b>'+(j[f.adapter]!=null?(j[f.adapter]?'로드됨':'없음'):'—')+'</b></span>';
+    html += '<span class="chip">GPU 메모리: <b>'+(j[f.gpu]!=null?j[f.gpu]+' GB':'—')+'</b></span>';
+    chips.innerHTML = html;
+    toast(ready ? "서버 준비 완료" : "서버 응답은 받았지만 아직 준비 중입니다.");
+  }catch(e){
+    chips.innerHTML = '<span class="chip bad">연결 실패</span>';
+    toast("연결 실패: "+e.message+" (Base URL / CORS / 서버 상태 확인)");
+  }
+}
+$("btnHealth").onclick = checkHealth;
+
+/* ============================================================
+   페이지 A — 이력서 분석 (POST /resume/analyze, 비스트리밍)
+============================================================ */
+function fillResumeSample(){
+  $("ra-doc").value =
+"저는 3년차 프론트엔드 개발자로, React와 TypeScript 기반 사내 대시보드 서비스를 개발했습니다. "+
+"기존 클래스형 컴포넌트를 함수형과 React Query로 마이그레이션하여 초기 로딩 시간을 4.2초에서 1.8초로 약 57% 단축했고, "+
+"불필요한 리렌더링을 메모이제이션으로 제거해 사용자 이탈률을 12% 낮췄습니다. "+
+"Webpack 번들을 코드 스플리팅하여 메인 번들 크기를 1.1MB에서 480KB로 줄였습니다. "+
+"협업에서는 Storybook 기반 디자인 시스템을 도입해 컴포넌트 재사용률을 높이고 QA 반려 건수를 30% 감소시켰습니다. "+
+"앞으로 사용자 경험을 데이터로 측정하고 개선하는 개발자가 되고 싶습니다.";
+  $("ra-job").value =
+"[프론트엔드 개발자 채용] 자격요건: React, TypeScript 실무 경험 2년 이상, 상태관리 라이브러리(Redux/React Query) 경험, REST API 연동 경험. "+
+"우대사항: 성능 최적화 경험, 디자인 시스템/Storybook 경험, 테스트 코드 작성 경험. "+
+"주요업무: 사내 어드민 및 대시보드 화면 개발, 공통 컴포넌트 설계.";
+  toast("예시 자소서를 채웠습니다.");
+}
+
+async function runResumeAnalyze(){
+  const doc = ($("ra-doc").value || "").trim();
+  const status = $("ra-status"), result = $("ra-result"), btn = $("ra-run");
+  result.classList.add("hide");
+  if(!doc){ showError(status, "자기소개서/이력서 본문을 입력하세요."); return; }
+  showLoading(status, "AI가 자소서를 분석 중입니다... (추론 모델이라 20~60초 걸릴 수 있어요)");
+  btn.disabled = true;
+
+  const rf = CONFIG.reqFields.resume;
+  const body = {};
+  body[rf.document] = doc;
+  body[rf.jobPosting] = ($("ra-job").value || "").trim();
+  body[rf.role] = "";
+  body[rf.lang] = CONFIG.lang;
+
+  try{
+    const r = await fetch(apiUrl(CONFIG.endpoints.resumeAnalyze.path), {
+      method:"POST", headers: authHeaders({"Content-Type":"application/json"}), body: JSON.stringify(body)
+    });
+    const text = await r.text();
+    let j; try{ j = JSON.parse(text); }catch(e){
+      showError(status, "응답을 JSON으로 파싱하지 못했습니다 (HTTP "+r.status+").", text); return;
+    }
+    if(j.ok === false){ showError(status, j.error || "분석 실패", j.raw); return; }
+    const F = CONFIG.resFields.resume;
+    const a = j[F.wrap];
+    if(!a){ showError(status, "응답에 analysis 가 없습니다.", text); return; }
+
+    status.classList.add("hide");
+    renderResumeResult(a, ($("ra-job").value||"").trim().length>0);
+  }catch(e){
+    showError(status, "요청 실패: "+e.message+" (CORS / 네트워크 / API Key 확인)");
+  }finally{
+    btn.disabled = false;
+  }
+}
+function renderResumeResult(a, hasPosting){
+  const F = CONFIG.resFields.resume;
+  // 점수 막대 (1~10)
+  let s = "";
+  s += scoreBar("종합 점수", a[F.overall], 10);
+  s += scoreBar("구체성 (specificity)", a[F.spec], 10);
+  s += scoreBar("STAR 구조", a[F.star], 10);
+  if(hasPosting){
+    s += scoreBar("공고 적합도 (job-fit)", a[F.jobfit], 10);
+  }else{
+    s += scoreBar("공고 적합도 (job-fit)", 0, 10, true, "채용공고 미입력");
+  }
+  $("ra-scores").innerHTML = s;
+
+  // 카드: 강점 / 약점 / 제안 / 총평
+  const list = (arr)=> (Array.isArray(arr)&&arr.length)
+      ? "<ul>"+arr.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul>"
+      : '<p class="muted" style="margin:0;font-size:13px;">제공된 항목 없음</p>';
+  let c = "";
+  c += '<div class="box"><h4><span class="badge s"></span>강점</h4>'+list(a[F.strengths])+'</div>';
+  c += '<div class="box"><h4><span class="badge w"></span>약점</h4>'+list(a[F.weaknesses])+'</div>';
+  c += '<div class="box"><h4><span class="badge t"></span>개선 제안</h4>'+list(a[F.suggestions])+'</div>';
+  c += '<div class="box full"><h4><span class="badge t"></span>총평</h4><p style="margin:0;">'+esc(a[F.summary]||"—")+'</p></div>';
+  $("ra-cards").innerHTML = c;
+  $("ra-result").classList.remove("hide");
+}
+$("ra-run").onclick = runResumeAnalyze;
+
+/* ============================================================
+   페이지 B — 교육
+============================================================ */
+/* 강의 카드(더미) 데이터 */
+const COURSES = [
+  { cat:"알고리즘",   title:"알고리즘 기초",        desc:"정렬·탐색·복잡도", prog:62 },
+  { cat:"CS기초",     title:"네트워크 & HTTP",      desc:"TCP/IP, HTTP, 보안", prog:40 },
+  { cat:"백엔드",     title:"데이터베이스 핵심",     desc:"트랜잭션·인덱스·정규화", prog:25 },
+  { cat:"프론트엔드", title:"React & TypeScript 심화", desc:"렌더링·상태관리·타입", prog:78 },
+  { cat:"백엔드",     title:"Spring Boot & JPA",    desc:"REST·영속성·계층구조", prog:15 },
+];
+function renderCourses(cat){
+  const grid = $("courseGrid");
+  const items = COURSES.filter(c => cat==="전체" || c.cat===cat);
+  grid.innerHTML = items.map(c =>
+    '<div class="course card">'+
+      '<span class="tag ct">'+catLabel(c.cat)+'</span>'+
+      '<h4>'+esc(c.title)+'</h4>'+
+      '<p>'+esc(c.desc)+'</p>'+
+      '<div class="meterwrap"><div class="bar"><i style="width:'+c.prog+'%"></i></div></div>'+
+    '</div>'
+  ).join("") || '<p class="muted">해당 카테고리 강의가 없습니다.</p>';
+}
+function catLabel(c){ return c==="CS기초" ? "CS 기초" : c; }
+document.querySelectorAll("#courseCats button").forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll("#courseCats button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    renderCourses(b.dataset.cat);
+  };
+});
+renderCourses("전체");
+
+/* ===== 내장 CS 단답 문제 (5~8개) ===== */
+const QUESTIONS = [
+  { id:"vdom",      cat:"프론트엔드", q:"Virtual DOM이 실제 DOM과 다른 점과 동작 원리를 설명하세요.",
+    sample:"Virtual DOM은 실제 DOM을 메모리에 가볍게 표현한 자바스크립트 객체입니다. 상태가 변하면 새 가상 트리를 만들고 이전 트리와 비교(diffing)해 변경된 부분만 실제 DOM에 반영(reconciliation)합니다. 덕분에 비용이 큰 DOM 연산을 최소화합니다." },
+  { id:"handshake", cat:"CS기초",    q:"TCP 3-way handshake의 3단계를 순서대로 설명하세요.",
+    sample:"1) 클라이언트가 SYN을 보내고, 2) 서버가 SYN+ACK로 응답하며, 3) 클라이언트가 ACK를 보내 연결이 확립됩니다. 이 과정에서 양쪽의 송수신 준비 상태와 초기 시퀀스 번호를 교환합니다." },
+  { id:"procthread", cat:"CS기초",   q:"프로세스와 스레드의 차이를 설명하세요.",
+    sample:"프로세스는 운영체제로부터 자원을 할당받는 실행 단위이고, 스레드는 프로세스 내에서 실행되는 흐름 단위입니다. 같은 프로세스의 스레드들은 코드·데이터·힙을 공유하지만 스택은 각자 가집니다." },
+  { id:"getpost",   cat:"CS기초",    q:"HTTP GET과 POST 메서드의 차이를 설명하세요.",
+    sample:"GET은 데이터 조회에 쓰고 파라미터가 URL 쿼리스트링에 노출되며 멱등합니다. POST는 데이터 생성·변경에 쓰고 본문(body)에 데이터를 담아 전송하며 멱등하지 않습니다." },
+  { id:"isolation", cat:"백엔드",    q:"데이터베이스 트랜잭션 격리수준 4가지를 설명하세요.",
+    sample:"READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE 4가지입니다. 수준이 높아질수록 Dirty Read, Non-Repeatable Read, Phantom Read 같은 이상현상이 줄지만 동시성은 낮아집니다." },
+  { id:"bigo",      cat:"알고리즘",  q:"빅오(Big-O) 표기법이 무엇이며 왜 사용하나요?",
+    sample:"입력 크기 n이 커질 때 알고리즘의 시간·공간 복잡도가 증가하는 정도를 나타내는 점근적 표기법입니다. 최악의 상한을 표현하고 상수·낮은 차수 항을 무시해 알고리즘의 확장성을 비교할 수 있게 합니다." },
+  { id:"closure",   cat:"프론트엔드", q:"자바스크립트의 클로저(closure)란 무엇인가요?",
+    sample:"함수가 선언될 때의 렉시컬 환경(외부 변수)을 기억하여, 외부 함수의 실행이 끝난 뒤에도 그 변수에 접근할 수 있는 함수입니다. 정보 은닉과 상태 유지에 활용됩니다." },
+  { id:"rest",      cat:"백엔드",    q:"REST API의 핵심 특징을 설명하세요.",
+    sample:"자원을 URI로 표현하고 HTTP 메서드(GET/POST/PUT/DELETE)로 행위를 정의하는 아키텍처 스타일입니다. 무상태성(stateless), 일관된 인터페이스, 자원의 표현(JSON 등) 같은 특징을 가집니다." },
+];
+let curQ = null;
+
+function pickQuestion(){
+  const cat = $("quiz-cat").value;
+  const pool = QUESTIONS.filter(q => cat==="전체" || q.cat===cat);
+  const list = pool.length ? pool : QUESTIONS;
+  // 같은 문제 연속 회피
+  let next = list[Math.floor((curQ ? (list.indexOf(curQ)+1) : 0) % list.length)];
+  if(list.length>1 && next===curQ) next = list[(list.indexOf(curQ)+1)%list.length];
+  curQ = next;
+  renderQuestion();
+}
+function renderQuestion(){
+  if(!curQ){ pickQuestion(); return; }
+  $("q-no").textContent = "["+catLabel(curQ.cat)+"] 단답 문제";
+  $("q-text").textContent = curQ.q;
+}
+function nextQuestion(){ pickQuestion(); $("q-answer").value=""; $("q-result").classList.add("hide"); $("q-streamwrap").classList.add("hide"); }
+function fillQuizSample(){ if(curQ){ $("q-answer").value = curQ.sample; toast("예시 답변을 채웠습니다."); } }
+function jumpToQuiz(id){
+  const found = QUESTIONS.find(q=>q.id===id);
+  if(found){
+    // 카테고리 셀렉트도 맞춰줌
+    $("quiz-cat").value = found.cat;
+    curQ = found; renderQuestion();
+    $("q-answer").value=""; $("q-result").classList.add("hide"); $("q-streamwrap").classList.add("hide");
+    document.querySelector("#page-edu .quizbox").scrollIntoView({behavior:"smooth", block:"center"});
+    toast("진단 문제로 이동했습니다.");
+  }
+}
+$("quiz-cat").onchange = ()=>{ pickQuestion(); $("q-answer").value=""; $("q-result").classList.add("hide"); $("q-streamwrap").classList.add("hide"); };
+pickQuestion();
+
+/* ===== 채점: POST /interview/evaluate/stream (SSE, fetch+ReadableStream) ===== */
+async function gradeAnswer(){
+  const answer = ($("q-answer").value || "").trim();
+  const status = $("q-status"), result = $("q-result"), btn = $("q-grade");
+  const swrap = $("q-streamwrap"), stream = $("q-stream");
+  result.classList.add("hide");
+  if(!curQ){ showError(status, "문제가 없습니다. '문제 바꾸기'를 눌러 주세요."); return; }
+  if(!answer){ showError(status, "답변을 입력하세요."); return; }
+
+  btn.disabled = true;
+  status.classList.add("hide");
+  swrap.classList.remove("hide");
+  stream.innerHTML = '<span class="cursor"></span>';
+  let acc = "";   // 누적 추론 텍스트
+
+  const rf = CONFIG.reqFields.evaluate;
+  const body = {};
+  body[rf.question] = curQ.q;
+  body[rf.answer] = answer;
+  body[rf.lang] = CONFIG.lang;
+
+  try{
+    const r = await fetch(apiUrl(CONFIG.endpoints.evaluateStream.path), {
+      method:"POST",
+      headers: authHeaders({"Content-Type":"application/json", "Accept":"text/event-stream"}),
+      body: JSON.stringify(body)
+    });
+
+    // SSE 가 아니면(예: 401 JSON) 전체를 읽어 원문 표시
+    const ct = (r.headers.get("content-type")||"");
+    if(!r.ok || ct.indexOf("text/event-stream")<0){
+      const t = await r.text();
+      swrap.classList.add("hide");
+      let j=null; try{ j=JSON.parse(t); }catch(e){}
+      showError(status, (j && j.error) ? j.error : ("스트림이 아닌 응답 (HTTP "+r.status+")"), j||t);
+      return;
+    }
+
+    // ReadableStream 직접 파싱
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    let doneEvent = null, errEvent = null;
+
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+      buf += decoder.decode(value, { stream:true });
+
+      let sep;
+      while((sep = buf.indexOf("\n\n")) >= 0){
+        const rawEvent = buf.slice(0, sep);
+        buf = buf.slice(sep + 2);
+        // "data:" 라인만 추출
+        const dataPayload = rawEvent.split("\n")
+          .filter(l => l.startsWith("data:"))
+          .map(l => l.slice(5).replace(/^ /,""))
+          .join("\n");
+        if(!dataPayload) continue;
+        let obj=null; try{ obj = JSON.parse(dataPayload); }catch(e){ continue; } // 파싱 실패해도 멈추지 않음
+        if(obj.type === "token"){
+          acc += (obj.text || "");
+          stream.innerHTML = esc(acc) + '<span class="cursor"></span>';
+          stream.scrollTop = stream.scrollHeight;
+        }else if(obj.type === "done"){
+          doneEvent = obj;
+        }else if(obj.type === "error"){
+          errEvent = obj;
+        }
+      }
+    }
+    // 커서 제거
+    stream.innerHTML = esc(acc) || '<span class="muted">(추론 토큰 없음)</span>';
+
+    if(errEvent){ showError(status, errEvent.error || "스트림 오류", acc); return; }
+    if(!doneEvent){ showError(status, "스트림이 done 이벤트 없이 종료됐습니다.", acc); return; }
+    if(doneEvent.ok === false){ showError(status, doneEvent.error || "채점 실패", acc); return; }
+
+    const ev = doneEvent[CONFIG.resFields.evalWrap];
+    if(!ev){ showError(status, "done 이벤트에 evaluation 이 없습니다.", JSON.stringify(doneEvent)); return; }
+    renderEvalResult(ev);
+
+  }catch(e){
+    showError(status, "스트리밍 요청 실패: "+e.message+" (CORS / 네트워크 / API Key 확인)", acc);
+  }finally{
+    btn.disabled = false;
+  }
+}
+function renderEvalResult(ev){
+  const R = CONFIG.resFields;
+  const sc = ev[R.evalScores] || {};
+  let s = "";
+  // 종합
+  if(ev[R.evalOverall]!=null) s += scoreBar("종합 (overall)", ev[R.evalOverall], 100);
+  // 4축
+  R.scoreKeys.forEach(k=>{
+    s += scoreBar(R.scoreLabels[k]+" ("+k+")", sc[k], 100);
+  });
+  $("q-scores").innerHTML = s;
+
+  const list = (arr)=> (Array.isArray(arr)&&arr.length)
+      ? "<ul>"+arr.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul>"
+      : '<p class="muted" style="margin:0;font-size:13px;">제공된 항목 없음</p>';
+  let c = "";
+  c += '<div class="box full"><h4><span class="badge t"></span>피드백</h4><p style="margin:0;">'+esc(ev[R.evalFeedback]||"—")+'</p></div>';
+  c += '<div class="box"><h4><span class="badge s"></span>강점</h4>'+list(ev[R.evalStrengths])+'</div>';
+  c += '<div class="box"><h4><span class="badge w"></span>개선점</h4>'+list(ev[R.evalImprovements])+'</div>';
+  $("q-cards").innerHTML = c;
+  $("q-result").classList.remove("hide");
+}
+$("q-grade").onclick = gradeAnswer;
+
+/* ============================================================
+   초기화 — Base URL 기본값 = window.location.origin
+   (file:// 로 직접 열면 비워서 사용자가 공개 URL 입력하도록)
+============================================================ */
+(function init(){
+  const origin = window.location.origin;
+  $("baseUrl").value = (/^https?:/i.test(origin)) ? origin : "";
+  // same-origin(공개URL/ 로 접속)으로 열렸으면 자동 health 체크
+  if(/^https?:/i.test(origin)) checkHealth();
+})();
+</script>
+</body>
+</html>
